@@ -9,6 +9,7 @@ const app = new Hono()
     return ctx.json({
       status: "online",
       version: "1.0.0",
+      author: "Lorenzo0111",
       images: count,
     });
   })

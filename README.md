@@ -30,13 +30,65 @@ The api will usually be available [here](http://localhost:3000/).
 
 ## Routes
 
-| Route          | Method | Description                | Body            |
-| -------------- | ------ | -------------------------- | --------------- |
-| /              | GET    | Get info about the api     |                 |
-| /images/upload | POST   | Upload an image to the api | FormData: image |
-| /images/:id    | GET    | Get an image by id         |                 |
-| /images/:id    | DELETE | Delete an image by id      | JSON: deleteKey |
-| /images/random | GET    | Get a random image         |                 |
+### GET /
+
+Get info about the api.
+Example response:
+
+```json
+{
+  "status": "online",
+  "version": "1.0.0",
+  "images": 5
+}
+```
+
+### POST /images/upload
+
+Upload an image to the api.
+Example request:
+
+```js
+const formData = new FormData();
+formData.append("file", file);
+
+fetch("http://localhost:3000/images/upload", {
+  method: "POST",
+  body: formData,
+});
+```
+
+Example response:
+
+```json
+{
+  "id": "1",
+  "name": "image.png",
+  "deleteKey": "123456",
+  "createdAt": "2021-08-01T00:00:00.000Z"
+}
+```
+
+### GET /images/:id
+
+Get an image by id.
+Response will be the image.
+
+### DELETE /images/:id
+
+Delete an image by id.
+Example request:
+
+```json
+{
+  "deleteKey": "123456"
+}
+```
+
+### GET /images/random
+
+Get a random image.
+Response will redirect to the image.
 
 ## License
 

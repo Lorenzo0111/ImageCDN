@@ -5,37 +5,46 @@ import { stream } from "hono/streaming";
 
 export const imagesRoute = new Hono()
   .post("/upload", async (ctx) => {
-    const body = await ctx.req.formData();
-    const file = body.get("file");
+    try {
+      const body = await ctx.req.formData();
+      const file = body.get("file");
 
-    if (!file || !(file instanceof File))
-      return ctx.json({ error: "No file found" }, 400);
+      if (!file || !(file instanceof File))
+        return ctx.json({ error: "No file found" }, 400);
 
-    const buffer = await file.arrayBuffer();
+      const buffer = await file.arrayBuffer();
 
-    if (!file.type.startsWith("image/"))
-      return ctx.json({ error: "Invalid file type" }, 400);
+      if (!file.type.startsWith("image/"))
+        return ctx.json({ error: "Invalid file type" }, 400);
 
-    if (buffer.byteLength > 5 * 1024 * 1024)
-      return ctx.json({ error: "File is too large" }, 400);
+      if (buffer.byteLength > 5 * 1024 * 1024)
+        return ctx.json({ error: "File is too large" }, 400);
 
-    const optimized = await compressImage(buffer);
-    const unit8Array = new Uint8Array(optimized);
+      const optimized = await compressImage(buffer);
+      const unit8Array = new Uint8Array(optimized);
 
-    const record = await prisma.file.create({
-      data: {
-        name: file.name,
-        data: unit8Array,
-      },
-      select: {
-        id: true,
-        name: true,
-        createdAt: true,
-        deleteKey: true,
-      },
-    });
+      const record = await prisma.file.create({
+        data: {
+          name: file.name,
+          data: unit8Array,
+        },
+        select: {
+          id: true,
+          name: true,
+          createdAt: true,
+          deleteKey: true,
+        },
+      });
 
-    return ctx.json(record);
+      console.log(`[IMAGES] File uploaded with id ${record.id}`);
+      return ctx.json(record);
+    } catch (error) {
+      console.error("[IMAGES] Error uploading file", error);
+      return ctx.json(
+        { error: "Error uploading file. Is the uploaded file an image?" },
+        500
+      );
+    }
   })
   .get("/:id", async (ctx) => {
     const id = ctx.req.param("id");
@@ -104,5 +113,6 @@ export const imagesRoute = new Hono()
     if (!record)
       return ctx.json({ error: "File not found or invalid delete key" }, 404);
 
+    console.log(`[IMAGES] File deleted with id ${record.id}`);
     return ctx.json(record);
   });
